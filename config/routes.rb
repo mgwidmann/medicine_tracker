@@ -1,5 +1,13 @@
 Rails.application.routes.draw do
-  devise_for :users
+  devise_for :users, controllers: {sessions: 'sessions'}
+
+  resources :packages, except: [:new, :edit] do
+    resources :drugs, except: [:new, :edit] do
+      resources :expiration_dates, except: [:new, :edit]
+    end
+  end
+  root "packages#index"
+
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".
 

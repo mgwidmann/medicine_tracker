@@ -32,7 +32,12 @@ gem 'spring',        group: :development
 # Use unicorn as the app server
 gem 'unicorn'
 
-gem 'rspec-rails', group: :development
+group :test do
+  gem 'rspec-rails'
+  gem 'minitest'
+  gem 'factory_girl_rails', '~> 4.4'
+  gem 'database_cleaner'
+end
 
 gem 'devise'
 

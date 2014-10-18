@@ -11,7 +11,32 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20141017011344) do
+ActiveRecord::Schema.define(version: 20141017022514) do
+
+  create_table "drugs", force: true do |t|
+    t.string   "name"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "package_id"
+  end
+
+  add_index "drugs", ["package_id"], name: "index_drugs_on_package_id"
+
+  create_table "expiration_dates", force: true do |t|
+    t.date     "date"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "drug_id"
+  end
+
+  add_index "expiration_dates", ["drug_id"], name: "index_expiration_dates_on_drug_id"
+
+  create_table "packages", force: true do |t|
+    t.string   "name"
+    t.string   "serial"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
 
   create_table "users", force: true do |t|
     t.string   "email",                  default: "", null: false
