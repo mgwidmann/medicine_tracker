@@ -22,6 +22,7 @@ Simple inventory tracking application to track medicine.
 ### System Information
 
 Ruby: Developed on 2.1.1p76 -- Should work for 1.9.3+
+
 Database: SQLite3 was chosen because this is not meant to be a production application.
 
 ## Tests
@@ -138,6 +139,6 @@ Same with updating it (though this sounds like it may be some kind of health cod
 
     curl -b cookies -c cookies -H "Content-Type: application/json" -XPUT http://localhost:8080/packages/1/drugs/5/expiration_dates/7.json -d '{"expiration_date":{"date":"2016-01-30"}}'
 
-No response again. Lastly we can delete it, there will not be a response for that either:
+No response again, good. Lastly we can delete it, there will not be a response for that either:
 
     curl -b cookies -c cookies -XDELETE http://localhost:8080/packages/1/drugs/5/expiration_dates/7.json
