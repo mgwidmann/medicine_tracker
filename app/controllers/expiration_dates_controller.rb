@@ -44,6 +44,6 @@ class ExpirationDatesController < ApplicationController
     end
 
     def expiration_date_params
-      params.require(:expiration_date).permit(:date).merge(drug_id: params[:drug_id])
+      params.require(:expiration_date).permit(:date, :drug_id).merge(drug_id: params[:drug_id])
     end
 end

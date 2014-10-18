@@ -1,4 +1,6 @@
 class DrugsController < ApplicationController
+  include Transformations
+
   before_action :set_package
   before_action :set_drug, only: [:show, :edit, :update, :destroy]
 
@@ -6,17 +8,17 @@ class DrugsController < ApplicationController
 
   def index
     @drugs = Drug.all
-    respond_with(@drugs)
+    respond_with(@drugs, include: :expiration_dates)
   end
 
   def show
-    respond_with(@package, @drug)
+    respond_with(@package, @drug, include: :expiration_dates)
   end
 
   def create
     @drug = Drug.new(drug_params)
     @drug.save
-    respond_with(@package, @drug)
+    respond_with(@package, @drug, include: :expiration_dates)
   end
 
   def update
@@ -39,6 +41,6 @@ class DrugsController < ApplicationController
     end
 
     def drug_params
-      params.require(:drug).permit(:name).merge(package_id: params[:package_id])
+      transform_expiration_dates params.require(:drug).permit(:name, EXPIRATION_DATES).merge(package_id: params[:package_id])
     end
 end

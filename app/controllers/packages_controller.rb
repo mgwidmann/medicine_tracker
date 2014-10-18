@@ -1,4 +1,6 @@
 class PackagesController < ApplicationController
+  include Transformations
+
   before_action :set_package, only: [:show, :edit, :update, :destroy]
 
   respond_to :json
@@ -15,7 +17,7 @@ class PackagesController < ApplicationController
   def create
     @package = Package.new(package_params)
     @package.save
-    respond_with(@package)
+    respond_with(@package, include: {drugs: {include: :expiration_dates}})
   end
 
   def update
@@ -35,19 +37,6 @@ class PackagesController < ApplicationController
 
     def package_params
       # Description of how params come into the API
-      transform_request params.require(:package).permit(:name, :serial, {drugs: [:name, {expiration_dates: []}]})
-    end
-
-    def transform_request(package)
-      # Transform the parameters to how Rails is expecting them
-      (package[:drugs] || []).map! do |drug|
-        (drug[:expiration_dates] || []).map! do |date|
-          {date: date}
-        end
-        drug[:expiration_dates_attributes] = drug.delete(:expiration_dates) if drug[:expiration_dates]
-        drug.permit(:name, {expiration_dates_attributes: [:date]})
-      end
-      package[:drugs_attributes] = package.delete(:drugs) if package[:drugs] # Rename
-      package
+      transform_drugs params.require(:package).permit(:name, :serial, DRUGS)
     end
 end
