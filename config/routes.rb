@@ -1,5 +1,9 @@
 Rails.application.routes.draw do
-  devise_for :users, controllers: {sessions: 'sessions'}
+
+  post "/users/sign_in", controller: :sessions, action: :create, as: :sign_in
+  delete "/users/sign_out", controller: :sessions, action: :destroy, as: :sign_out
+  post "/users/sign_up", controller: :users, action: :create, as: :sign_up
+  get "/users/:id", controller: :users, action: :show, as: :user
 
   resources :packages, except: [:new, :edit] do
     resources :drugs, except: [:new, :edit] do

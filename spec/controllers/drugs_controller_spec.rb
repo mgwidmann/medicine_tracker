@@ -20,7 +20,7 @@ require 'spec_helper'
 
 describe DrugsController do
 
-  before(:each) { sign_in :user, create(:user) }
+  let(:user) { create(:user) }
 
   let(:package) { create(:empty_package) }
 
@@ -32,7 +32,8 @@ describe DrugsController do
   # This should return the minimal set of values that should be in the session
   # in order to pass any filters (e.g. authentication) defined in
   # DrugsController. Be sure to keep this updated too.
-  let(:valid_session) { {} }
+  let(:valid_session) { {user_id: user.id} }
+  let(:invalid_session) { {} }
 
   describe "GET index" do
     it "assigns all drugs as @drugs" do
@@ -111,6 +112,30 @@ describe DrugsController do
       expect {
         delete :destroy, {id: drug.to_param, package_id: package.id, format: :json}, valid_session
       }.to change(Drug, :count).by(-1)
+    end
+    it "handles destroying something that doesn't exist" do
+      delete :destroy, {package_id: package.id, id: "10000", format: :json}, valid_session
+      JSON.parse(response.body).should == {"errors" => {"not_found" => "Yeah, about that... Couldn't find Drug with 'id'=10000 [WHERE \"drugs\".\"package_id\" = ?]"}}
+    end
+  end
+
+  describe "without logging in" do
+    it "will return an unauthorized response" do
+      get :index, {package_id: package.to_param, format: :json}, invalid_session
+      response.code.should eq("401")
+    end
+  end
+
+  context "handles unknown exceptions" do
+    before do
+      def controller.index
+        raise "BOOM"
+      end
+    end
+    it "responds to the user" do
+      get :index, {package_id: package.to_param, format: :json}, valid_session
+      response.code.should eq("500")
+      JSON.parse(response.body).should == {"errors" => {"runtime_error" => "BOOM"}}
     end
   end
 

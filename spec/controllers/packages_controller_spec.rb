@@ -20,7 +20,7 @@ require 'spec_helper'
 
 describe PackagesController do
 
-  before(:each) { sign_in :user, create(:user) }
+  let(:user) { create(:user) }
 
   # This should return the minimal set of attributes required to create a valid
   # Package. As you add validations to Package, be sure to
@@ -30,7 +30,8 @@ describe PackagesController do
   # This should return the minimal set of values that should be in the session
   # in order to pass any filters (e.g. authentication) defined in
   # PackagesController. Be sure to keep this updated too.
-  let(:valid_session) { {} }
+  let(:valid_session) { {user_id: user.id} }
+  let(:invalid_session) { {} }
 
   describe "GET index" do
     render_views
@@ -141,10 +142,35 @@ describe PackagesController do
 
   describe "DELETE destroy" do
     it "destroys the requested package" do
-      package = Package.create! valid_attributes
+      package = create(:package)
       expect {
         delete :destroy, {:id => package.to_param, format: :json}, valid_session
       }.to change(Package, :count).by(-1)
+    end
+    it "handles destroying something that doesn't exist" do
+      delete :destroy, {id: "10000", format: :json}, valid_session
+      JSON.parse(response.body).should == {"errors" => {"not_found" => "Yeah, about that... Couldn't find Package with 'id'=10000"}}
+    end
+  end
+
+
+  describe "without logging in" do
+    it "will return an unauthorized response" do
+      get :index, {format: :json}, invalid_session
+      response.code.should eq("401")
+    end
+  end
+
+  context "handles unknown exceptions" do
+    before do
+      def controller.index
+        raise "BOOM"
+      end
+    end
+    it "responds to the user" do
+      get :index, {format: :json}, valid_session
+      response.code.should eq("500")
+      JSON.parse(response.body).should == {"errors" => {"runtime_error" => "BOOM"}}
     end
   end
 

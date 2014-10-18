@@ -37,13 +37,25 @@ A test suite coverage tool is checked in (simply for distribution purposes so ot
 
 After starting up the server, below is an example list of capabilities.
 
-#### Signing In
+#### Singing Up
 
 The `rake db:seed` task will create a test user for you. If you already ran the `rake db:setup` task, this has been done for you.
 
 The users credentials are: test@test.com/password
 
-Submit the curl request as follows, **this is required before making any other requests!**. You will receive a 401 response otherwise.
+However, to allow other users to access the system besides the ones seeded, a JSON API is available for adding new users.
+
+    curl -b cookies -c cookies -H "Content-Type: application/json" -XPOST http://localhost:8080/users/sign_up.json -d '{"user":{"email":"myemail@example.com","password":"password","password_confirmation":"password"}}'
+
+    {"id":2,"email":"myemail2@example.com"}
+
+Attempting to sign up again will result in an error:
+
+    {"errors":{"email":["has already been taken"]}}
+
+#### Signing In
+
+Using either the user created above or the seeded user, submit the curl request as follows. **This is required before making any other requests!**. You will receive a 401 response otherwise.
 
     curl -b cookies -c cookies -H "Content-Type: application/json" -XPOST http://localhost:8080/users/sign_in.json -d '{"user":{"email":"test@test.com","password":"password"}}'
 

@@ -1,31 +1,31 @@
-# Taken from below and modified:
-# http://natashatherobot.com/devise-rails-sign-in/
-class SessionsController < Devise::SessionsController
+class SessionsController < ApplicationController
+
+  skip_filter :authenticate_user!
+  respond_to :json
+
+  SUCCESS = {success: true}
+  FAILURE = {success: false, errors: ["Invalid email or password."]}
 
   def create
-    resource = warden.authenticate!(scope: resource_name, recall: "#{controller_path}#respond_to_failure")
-    sign_in_and_redirect(resource_name, resource)
+    @user = User.login(*login_params)
+    if @user
+      session[:user_id] = @user.id
+      respond_with(SUCCESS, location: root_url)
+    else
+      respond_with(FAILURE, location: root_url)
+    end
   end
 
-  # Override sign in to not redirect
-  def sign_in_and_redirect(resource_or_scope, resource=nil)
-    scope = Devise::Mapping.find_scope!(resource_or_scope)
-    resource ||= resource_or_scope
-    sign_in(scope, resource) unless warden.user(scope) == resource
-    respond_to_success
+  def destroy
+    session.destroy
+    head :ok
   end
 
-  # Override sign out to not redirect
-  def respond_to_on_destroy
-    respond_to_success
-  end
+  private
 
-  def respond_to_failure
-    render json: {success: false, errors: ["Login failed."]}
-  end
+    def login_params
+      l = params.require(:user).permit(:email, :password)
+      return l[:email], l[:password]
+    end
 
-  def respond_to_success
-    render json: {success: true}
-  end
-  
 end

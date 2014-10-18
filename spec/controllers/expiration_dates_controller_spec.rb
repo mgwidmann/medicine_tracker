@@ -20,7 +20,7 @@ require 'spec_helper'
 
 describe ExpirationDatesController do
 
-  before(:each) { sign_in :user, create(:user) }
+  let(:user) { create(:user) }
 
   let(:package) { create(:empty_package) }
   let(:drug) { create(:drug_no_dates, package: package) }
@@ -34,7 +34,8 @@ describe ExpirationDatesController do
   # This should return the minimal set of values that should be in the session
   # in order to pass any filters (e.g. authentication) defined in
   # ExpirationDatesController. Be sure to keep this updated too.
-  let(:valid_session) { {} }
+  let(:valid_session) { {user_id: user.id} }
+  let(:invalid_session) { {} }
 
   before(:each) { expiration_date.should be }
 
@@ -109,6 +110,30 @@ describe ExpirationDatesController do
       expect {
         delete :destroy, {id: expiration_date.to_param, package_id: package.id, drug_id: drug.id, format: :json}, valid_session
       }.to change(ExpirationDate, :count).by(-1)
+    end
+    it "handles destroying something that doesn't exist" do
+      delete :destroy, {package_id: package.id, drug_id: drug.id, id: "10000", format: :json}, valid_session
+      JSON.parse(response.body).should == {"errors" => {"not_found" => "Yeah, about that... Couldn't find ExpirationDate with 'id'=10000 [WHERE \"expiration_dates\".\"drug_id\" = ?]"}}
+    end
+  end
+
+  describe "without logging in" do
+    it "will return an unauthorized response" do
+      get :index, {package_id: package.id, drug_id: drug.id, format: :json}, invalid_session
+      response.code.should eq("401")
+    end
+  end
+
+  context "handles unknown exceptions" do
+    before do
+      def controller.index
+        raise "BOOM"
+      end
+    end
+    it "responds to the user" do
+      get :index, {package_id: package.to_param, drug_id: drug.id, format: :json}, valid_session
+      response.code.should eq("500")
+      JSON.parse(response.body).should == {"errors" => {"runtime_error" => "BOOM"}}
     end
   end
 

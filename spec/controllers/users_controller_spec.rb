@@ -18,58 +18,46 @@ require 'spec_helper'
 # Message expectations are only used when there is no simpler way to specify
 # that an instance is receiving a specific message.
 
-describe SessionsController do
-
-  before(:each) { create(:user) }
+describe UsersController do
 
   # This should return the minimal set of attributes required to create a valid
   # Session. As you add validations to Session, be sure to
   # adjust the attributes here as well.
-  let(:valid_attributes) { {email: 'test@test.com', password: 'testtest'} }
-  let(:invalid_attributes) { {email: 'test@test.com', password: 'wrong'} }
-
-  let(:success) { {success: true}.to_json }
-  let(:failure) { {success: false, errors: ["Invalid email or password."]}.to_json }
+  let(:valid_attributes) { {email: 'test@test.com', password: 'testtest', password_confirmation: 'testtest'} }
+  let(:invalid_attributes) { {email: 'test@test.com', password: 'wrong', password_confirmation: 'password'} }
 
   # This should return the minimal set of values that should be in the session
   # in order to pass any filters (e.g. authentication) defined in
-  # SessionsController. Be sure to keep this updated too.
+  # UsersController. Be sure to keep this updated too.
   let(:invalid_session) { {} }
 
   describe "POST create" do
     describe "with valid params" do
-      it "creates a new session" do
-        post :create, {user: valid_attributes, format: :json}, invalid_session
-        response.body.should == success
+      it "creates a new user" do
+        expect {
+          post :create, {user: valid_attributes, format: :json}, invalid_session
+        }.to change(User, :count).by(1)
       end
     end
 
     describe "with invalid params" do
-      it "responds with a failure message" do
-        # Trigger the behavior that occurs when invalid params are submitted
+      it "does not create the user" do
+        expect {
+          post :create, {user: invalid_attributes, format: :json}, invalid_session
+        }.to change(User, :count).by(0)
+      end
+
+      it "indicates the failure" do
         post :create, {user: invalid_attributes, format: :json}, invalid_session
-        response.body.should == failure
+        JSON.parse(response.body).should == {"errors"=>{"password"=>["does not match"]}}
       end
     end
   end
 
-  describe "DELETE destroy" do
-    it "destroys the session" do
-      delete :destroy, {format: :json}, invalid_session
-      response.should be_ok
-    end
-  end
-
-  context "handles unknown exceptions" do
-    before do
-      def controller.create
-        raise "BOOM"
-      end
-    end
-    it "responds to the user" do
-      post :create, {user: valid_attributes, format: :json}, invalid_session
-      response.code.should eq("500")
-      JSON.parse(response.body).should == {"errors" => {"runtime_error" => "BOOM"}}
+  describe "fetching users" do
+    before(:each) { @user = create(:user) }
+    it "can retrive a user by id" do
+      get :show, {id: @user.id, format: :json}, {user_id: @user.id}
     end
   end
 
