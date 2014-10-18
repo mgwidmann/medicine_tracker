@@ -34,6 +34,20 @@ class PackagesController < ApplicationController
     end
 
     def package_params
-      params.require(:package).permit(:name, :serial)
+      # Description of how params come into the API
+      transform_request params.require(:package).permit(:name, :serial, {drugs: [:name, {expiration_dates: []}]})
+    end
+
+    def transform_request(package)
+      # Transform the parameters to how Rails is expecting them
+      (package[:drugs] || []).map! do |drug|
+        (drug[:expiration_dates] || []).map! do |date|
+          {date: date}
+        end
+        drug[:expiration_dates_attributes] = drug.delete(:expiration_dates) if drug[:expiration_dates]
+        drug.permit(:name, {expiration_dates_attributes: [:date]})
+      end
+      package[:drugs_attributes] = package.delete(:drugs) if package[:drugs] # Rename
+      package
     end
 end

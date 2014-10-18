@@ -33,11 +33,21 @@ describe PackagesController do
   let(:valid_session) { {} }
 
   describe "GET index" do
+    render_views
+    let(:json) { JSON.parse(response.body) }
     it "assigns all packages as @packages" do
       package = Package.create! valid_attributes
       get :index, {format: :json}, valid_session
       assigns(:packages).should eq([package])
     end
+
+    it "combines the drugs when listing packages" do
+      package = create(:package_with_many_drugs)
+      get :index, {format: :json}, valid_session
+      json.first["drugs"].should == ["Epinephrine", "Propofol", "Dilaudid"]
+      json.first["expiration_date"].should == 10.days.ago.to_date.to_s
+    end
+
   end
 
   describe "GET show" do
@@ -52,7 +62,7 @@ describe PackagesController do
     describe "with valid params" do
       it "creates a new Package" do
         expect {
-          post :create, {:package => valid_attributes, format: :json}, valid_session
+          post :create, {package: valid_attributes, format: :json}, valid_session
         }.to change(Package, :count).by(1)
       end
 
@@ -61,6 +71,19 @@ describe PackagesController do
         assigns(:package).should be_a(Package)
         assigns(:package).should be_persisted
       end
+
+      it "allows nested drugs" do
+        expect {
+          post :create, {package: {drugs: [{name: "Propofol"}]}, format: :json}, valid_session
+        }.to change(Drug, :count).by(1)
+      end
+
+      it "allows nested drugs with expiration dates" do
+        expect {
+          post :create, {package: {drugs: [{name: "Propofol", expiration_dates: ["2013/10/11"]}]}, format: :json}, valid_session
+        }.to change(ExpirationDate, :count).by(1)
+      end
+
     end
 
     describe "with invalid params" do
@@ -75,21 +98,34 @@ describe PackagesController do
 
   describe "PUT update" do
     describe "with valid params" do
+      let(:package) { Package.create! valid_attributes }
+
       it "updates the requested package" do
-        package = Package.create! valid_attributes
         # Assuming there are no other packages in the database, this
         # specifies that the Package created on the previous line
         # receives the :update_attributes message with whatever params are
         # submitted in the request.
         Package.any_instance.should_receive(:update).with({ "name" => "MyString" })
-        put :update, {:id => package.to_param, :package => { "name" => "MyString" }, format: :json}, valid_session
+        put :update, {id: package.to_param, :package => { "name" => "MyString" }, format: :json}, valid_session
       end
 
       it "assigns the requested package as @package" do
-        package = Package.create! valid_attributes
-        put :update, {:id => package.to_param, :package => valid_attributes, format: :json}, valid_session
+        put :update, {id: package.to_param, :package => valid_attributes, format: :json}, valid_session
         assigns(:package).should eq(package)
       end
+
+      it "allows nested drugs" do
+        expect {
+          put :update, {id: package.to_param, package: {drugs: [{name: "Propofol"}]}, format: :json}, valid_session
+        }.to change(Drug, :count).by(1)
+      end
+
+      it "allows nested drugs with expiration dates" do
+        expect {
+          put :update, {id: package.to_param, package: {drugs: [{name: "Propofol", expiration_dates: ["2013/10/11"]}]}, format: :json}, valid_session
+        }.to change(ExpirationDate, :count).by(1)
+      end
+
     end
 
     describe "with invalid params" do

@@ -6,6 +6,14 @@ FactoryGirl.define do
       create(:drug, package: package)
     end
   end
+  factory :package_with_many_drugs, class: Package do
+    name "Has Many Drugs"
+    after(:create) do |package|
+      create(:drug, name: "Epinephrine", package: package)
+      create(:drug, name: "Propofol", package: package)
+      create(:drug, name: "Dilaudid", package: package)
+    end
+  end
   factory :empty_package, class: Package do
   end
   factory :unexpired_package, class: Package do
