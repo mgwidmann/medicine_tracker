@@ -19,6 +19,10 @@ Simple inventory tracking application to track medicine.
 
 ### Visit [http://localhost:8080/](http://localhost:8080)
 
+### System Information
+
+Ruby: Developed on 2.1.1p76 -- Should work for 1.9.3+
+Database: SQLite3 was chosen because this is not meant to be a production application.
 
 ## Tests
 
