@@ -39,6 +39,8 @@ group :test do
   gem 'database_cleaner'
 end
 
+gem 'simplecov', :require => false, :group => :test
+
 gem 'devise'
 
 # Use Capistrano for deployment

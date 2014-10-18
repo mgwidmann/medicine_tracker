@@ -31,6 +31,8 @@ Database: SQLite3 was chosen because this is not meant to be a production applic
 
     rspec
 
+A test suite coverage tool is checked in (simply for distribution purposes so others need not run the test suite to generate it). To view the coverage report, simply open the `coverage/index.html` file in your browser.
+
 ### CURL
 
 After starting up the server, below is an example list of capabilities.
